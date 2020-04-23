@@ -45,7 +45,7 @@ public class Work {
                 Actions actions = new Actions(webDriver);
 
                 actions.moveToElement(cell).click(cell).perform();
-                Thread.sleep(500);
+                Thread.sleep(1000);
 
                 //获取tab页
                 WebElement tab = webDriver.findElement(By.cssSelector(".tabtags"));
