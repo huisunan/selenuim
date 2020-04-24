@@ -1,11 +1,13 @@
 package com.hsn;
 
+import com.google.common.io.Files;
 import org.openqa.selenium.*;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.interactions.Actions;
 
+import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -14,6 +16,7 @@ public class Work {
     private static final String url = "http://i.mooc.chaoxing.com/";
     private String title;
     private String value;
+    private Set<String> haveStudy = new HashSet<>();
 
     public Work() {
         ChromeOptions chromeOptions = new ChromeOptions();
@@ -59,7 +62,10 @@ public class Work {
         }
     }
 
-    private void playVideo() throws InterruptedException {
+    /**
+     * 返回true表示看过了
+     */
+    private boolean playVideo() throws InterruptedException {
         /**
          * 滚动进度条
          */
@@ -68,6 +74,15 @@ public class Work {
         //进入 iframe
         WebElement iframe = webDriver.findElement(By.tagName("iframe"));
         webDriver.switchTo().frame(iframe);
+        try{
+            //找到了就是学过了
+            webDriver.findElement(By.cssSelector(".ans-job-finished"));
+            haveStudy.add(title);
+            return true;
+        }catch (NoSuchElementException ignored){
+            //没有找到就是没学过
+
+        }
         Thread.sleep(500);
         WebElement iframe2 = webDriver.findElement(By.tagName("iframe"));
         webDriver.switchTo().frame(iframe2);
@@ -76,6 +91,8 @@ public class Work {
         WebElement videoButton = webDriver.findElement(By.cssSelector(".vjs-big-play-button"));
         moveAndClickVideo(videoButton);
         Thread.sleep(500);
+
+        return false;
     }
 
     /**
@@ -137,6 +154,13 @@ public class Work {
             //更新进度条的值
             value = progress.getAttribute("aria-valuenow");
             System.out.print("\r" + title + "     " + value + "%");
+            File screenshotAs = ((TakesScreenshot) webDriver).getScreenshotAs(OutputType.FILE);
+            try{
+                File to = new File("截图.jpg");
+                Files.copy(screenshotAs,to);
+            }catch (Exception e){
+                System.out.println("保存图片失败!");
+            }
         }
         Thread.sleep(3000);
 
@@ -182,11 +206,13 @@ public class Work {
                 offset += 33;
                 List<WebElement> elements = cell.findElements(By.cssSelector(".ncells"));
                 for (WebElement element : elements) {
-                    if ("2".equals(element.findElement(By.cssSelector(".roundpointStudent")).getText())) {
+                    String attribute = element.findElement(By.tagName("a")).getAttribute("title");
+                    if ("2".equals(element.findElement(By.cssSelector(".roundpointStudent")).getText()) && !haveStudy.contains(attribute)) {
                         curCell = element;
                         find = true;
                         break;
                     }
+                    haveStudy.add(attribute);
                     offset += 27;
                 }
             }
@@ -199,7 +225,9 @@ public class Work {
                 //切换选项卡
                 this.clickTab();
                 //播放视频
-                this.playVideo();
+                if (playVideo()){
+                    continue;
+                }
                 //开启监听
                 this.listener();
             } else {
