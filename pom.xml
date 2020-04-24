@@ -7,6 +7,7 @@
     <groupId>org.example</groupId>
     <artifactId>selenuim</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
     <dependencies>
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
@@ -16,14 +17,46 @@
 
     </dependencies>
     <build>
+        <finalName>selenium</finalName>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <targetPath>${project.build.directory}</targetPath>
+            </resource>
+        </resources>
         <plugins>
+            <!--      配置打包，并配置MainClass， 但不将依赖包打包，会出现找不到依赖的异常    -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
+                <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <!--   MANIFEST.MF 中 Class-Path -->
+                            <classpathPrefix>lib/</classpathPrefix>
+                            <mainClass>com.hsn.Start</mainClass>
+                        </manifest>
+                    </archive>
                 </configuration>
+            </plugin>
+            <!--      配置依赖包      -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <!--              将依赖包打包至target下的lib目录              -->
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
