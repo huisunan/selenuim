@@ -8,6 +8,9 @@ import java.util.Scanner;
 
 public class Start {
     public static void main(String[] args){
+        //打包时用此条
+//        System.getProperties().setProperty("webdriver.chrome.driver", "chromedriver.exe");
+
         System.getProperties().setProperty("webdriver.chrome.driver", "src/main/resources/chromedriver.exe");
         Work work = new Work();
         Scanner scanner = new Scanner(System.in);

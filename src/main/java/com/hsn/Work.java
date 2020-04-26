@@ -7,6 +7,7 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.interactions.Actions;
 
+import javax.swing.*;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -17,7 +18,7 @@ public class Work {
     private String title;
     private String value;
     private Set<String> haveStudy = new HashSet<>();
-
+    private JTextPane textPane;
     public Work() {
         ChromeOptions chromeOptions = new ChromeOptions();
         chromeOptions.addArguments("user-data-dir=C:\\User Data");
@@ -25,7 +26,10 @@ public class Work {
 
         this.webDriver.get(url);
     }
-
+    public Work(JTextPane textPane){
+        this();
+        this.textPane = textPane;
+    }
     public void quit() {
         this.webDriver.quit();
     }
@@ -154,13 +158,16 @@ public class Work {
             //更新进度条的值
             value = progress.getAttribute("aria-valuenow");
             System.out.print("\r" + title + "     " + value + "%");
-            File screenshotAs = ((TakesScreenshot) webDriver).getScreenshotAs(OutputType.FILE);
-            try{
+            if (textPane != null){
+                textPane.setText(title + "     " + value + "%");
+            }
+//            File screenshotAs = ((TakesScreenshot) webDriver).getScreenshotAs(OutputType.FILE);
+          /*  try{
                 File to = new File("截图.jpg");
                 Files.copy(screenshotAs,to);
             }catch (Exception e){
                 System.out.println("保存图片失败!");
-            }
+            }*/
         }
         Thread.sleep(3000);
 
@@ -192,7 +199,7 @@ public class Work {
         //获取未完成的列表
         while (true) {
             webDriver.switchTo().defaultContent();
-            int offset = 0;
+            int offset = -10;
             //content 33px
             //ncells 27px
             //document.querySelector("#content1").scrollTo(0,100)
@@ -219,8 +226,13 @@ public class Work {
             if (curCell != null) {
                 ((JavascriptExecutor) webDriver).executeScript("document.querySelector(\"#content1\").scrollTo(0," + offset + ")");
                 Thread.sleep(800);
-                moveAndClick(curCell);
-                title = curCell.findElement(By.tagName("a")).getAttribute("title");
+                WebElement href = curCell.findElement(By.tagName("a"));
+                moveAndClick(href);
+                String temp = title;
+                title = href.getAttribute("title");
+                if (temp != null && temp.equals(title)){
+                    System.out.println("重复学习了!!!!");
+                }
                 Thread.sleep(1000);
                 //切换选项卡
                 this.clickTab();
@@ -242,12 +254,12 @@ public class Work {
             this.startStudy();
         } catch (Exception e) {
             e.printStackTrace();
-            Scanner scanner = new Scanner(System.in);
-            System.out.println("系统出错是否退出?\ny:退出");
-            String next = scanner.next();
-            if (next.equals("y")) {
-                webDriver.quit();
-            }
+//            Scanner scanner = new Scanner(System.in);
+//            System.out.println("系统出错是否退出?\ny:退出");
+//            String next = scanner.next();
+//            if (next.equals("y")) {
+//                webDriver.quit();
+//            }
         }
     }
 
